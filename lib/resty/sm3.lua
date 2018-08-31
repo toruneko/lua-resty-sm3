@@ -14,7 +14,7 @@ local ffi_cast = ffi.cast
 local tab_concat = table.concat
 local setmetatable = setmetatable
 
-local _M = { _VERSION = '0.01' }
+local _M = { _VERSION = '0.0.1' }
 local mt = { __index = _M }
 
 local ok, new_tab = pcall(require, "table.new")
