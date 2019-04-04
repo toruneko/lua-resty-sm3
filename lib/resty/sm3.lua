@@ -22,15 +22,15 @@ if not ok then
     new_tab = function(narr, nrec) return {} end
 end
 
-local function uint32(b, n)
-    return bor(lshift(b[n], 24), lshift(b[n + 1], 16), lshift(b[n + 2], 8), b[n + 3])
+local function get32(pc, n)
+    return bor(lshift(pc[n], 24), lshift(pc[n + 1], 16), lshift(pc[n + 2], 8), pc[n + 3])
 end
 
-local function byte4(u32, b, n)
-    b[n] = band(rshift(u32, 24), 0xFF)
-    b[n + 1] = band(rshift(u32, 16), 0xFF)
-    b[n + 2] = band(rshift(u32, 8), 0xFF)
-    b[n + 3] = band(u32, 0xFF)
+local function put32(st, ct, n)
+    ct[n] = band(rshift(st, 24), 0xFF)
+    ct[n + 1] = band(rshift(st, 16), 0xFF)
+    ct[n + 2] = band(rshift(st, 8), 0xFF)
+    ct[n + 3] = band(st, 0xFF)
 end
 
 -- S(x,n): 32比特循环左移n比特运算
@@ -79,7 +79,7 @@ for i = 17, 64, 1 do
 end
 
 -- 常量 T
-local T = ffi.new("uint32_t[64]", {
+local T = ffi.new("const uint32_t[64]", {
     0x79cc4519, 0xf3988a32, 0xe7311465, 0xce6228cb, 0x9cc45197, 0x3988a32f, 0x7311465e, 0xe6228cbc,
     0xcc451979, 0x988a32f3, 0x311465e7, 0x6228cbce, 0xc451979c, 0x88a32f39, 0x11465e73, 0x228cbce6,
     0x9d8a7a87, 0x3b14f50f, 0x7629ea1e, 0xec53d43c, 0xd8a7a879, 0xb14f50f3, 0x629ea1e7, 0xc53d43ce,
@@ -137,7 +137,7 @@ local function SM3_Update_block(ctx, block, offset)
 
     for i = 1, 16, 1 do
         local j = i - 1
-        W[j] = uint32(block, offset + lshift(j, 2))
+        W[j] = get32(block, offset + lshift(j, 2))
     end
 
     for i = 17, 68, 1 do
@@ -230,8 +230,8 @@ local function SM3_Final(ctx, digest)
     local msglen = ffi_new("uint32_t[8]", { 0, 0, 0, 0, 0, 0, 0, 0 })
     local high = bor(rshift(ctx.lLen, 29), lshift(ctx.hLen, 3))
     local low = lshift(ctx.lLen, 3)
-    byte4(high, msglen, 0)
-    byte4(low, msglen, 4)
+    put32(high, msglen, 0)
+    put32(low, msglen, 4)
 
     local last = band(ctx.lLen, 0x3F)
     local padn = (last < 56) and (56 - last) or (120 - last)
